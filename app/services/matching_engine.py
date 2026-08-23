@@ -774,3 +774,51 @@ def select_best_semantic_matches(
                 }
 
     return filtered_matches
+
+def integrate_semantic_skill_evidence(
+    skill_result: dict,
+    semantic_matches: dict,
+) -> dict:
+    """
+    Add validated semantic evidence to the deterministic
+    skill-matching result.
+
+    Exact matches remain unchanged.
+    Semantic matches are only added for unresolved
+    requirements that passed the semantic threshold.
+
+    Args:
+        skill_result: Deterministic skill matching result.
+        semantic_matches: Threshold-filtered semantic matches.
+
+    Returns:
+        Combined skill analysis.
+    """
+
+    combined = {
+        "required": {
+            "matched": list(skill_result["required"]["matched"]),
+            "missing": list(skill_result["required"]["missing"]),
+            "semantic_evidence": [],
+        },
+        "preferred": {
+            "matched": list(skill_result["preferred"]["matched"]),
+            "missing": list(skill_result["preferred"]["missing"]),
+            "semantic_evidence": [],
+        },
+    }
+
+    for category in ["required", "preferred"]:
+
+        for requirement, candidate in semantic_matches[category].items():
+
+            combined[category]["semantic_evidence"].append(
+                {
+                    "job_requirement": requirement,
+                    "resume_skill": candidate["resume_skill"],
+                    "similarity": candidate["similarity"],
+                    "classification": candidate["classification"],
+                }
+            )
+
+    return combined

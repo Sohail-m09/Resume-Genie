@@ -9,6 +9,7 @@ from services.matching_engine import (
     match_project_relevance,
     build_match_analysis,
     select_best_semantic_matches,
+    integrate_semantic_skill_evidence,
 )
 from schemas.resume import (
     Resume,
@@ -201,3 +202,11 @@ best_semantic_matches = select_best_semantic_matches(
 
 print("\n===== BEST SEMANTIC MATCHES =====")
 print(best_semantic_matches)
+
+combined_skill_result = integrate_semantic_skill_evidence(
+    skill_result=skill_result,
+    semantic_matches=best_semantic_matches,
+)
+
+print("\n===== COMBINED SKILL ANALYSIS =====")
+print(combined_skill_result)
