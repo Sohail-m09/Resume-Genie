@@ -38,4 +38,3 @@ class Resume(BaseModel):
     experience: list[Experience] = Field(default_factory=list)
     projects: list[Project] = Field(default_factory=list)
     certifications: list[str] = Field(default_factory=list) 
-    

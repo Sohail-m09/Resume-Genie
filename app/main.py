@@ -13,6 +13,17 @@ from vectorstore.chroma_store import store_resume_chunks
 from rag.context_builder import build_resume_context
 from retrieval.chroma_retriever import retrieve_resume_context
 from rag.prompt_builder import build_resume_prompt
+from rag.generator import generate_resume_answer
+from llm.gemini import get_gemini_model
+from rag.resume_rag import ask_resume
+from analysis.resume_analyzer import analyze_resume
+from analysis.skill_gap_analyzer import detect_skill_gaps, explain_skill_gaps
+from analysis.semantic_evidence import find_semantic_skill_evidence
+from analysis.improvement_recommendations import (
+    generate_improvement_recommendations,
+)
+from services.keyword_optimizer import find_keyword_gaps
+from analysis.project_strengthener import strengthen_projects
 
 def process_resume(file_path: str) -> tuple[Resume  ,list[Document]]:
     """
@@ -46,7 +57,7 @@ def process_job_description(file_path: str) -> JobDescription:
 
 if __name__ == "__main__":
     resume_path = Path(r"D:\Resume-Genie\data\Sohail_Momin.pdf")
-    job_path = Path(r"D:\Resume-Genie\data\Sample_Job_Description.pdf")
+    job_path = Path(r"D:\Resume-Genie\data\Data_Scientist_JD.pdf")
 
     ## Resume processing
     resume, chunks = process_resume(str(resume_path))
@@ -61,7 +72,7 @@ if __name__ == "__main__":
 
     validate_resume_extraction(resume)
 
-    print("===== STRUCTURED RESUME =====")
+    '''print("===== STRUCTURED RESUME =====")
     print(resume.model_dump())
 
     print("\n===== STRUCTURED JOB DESCRIPTION =====")
@@ -87,10 +98,10 @@ if __name__ == "__main__":
     resume_context = build_resume_context(retrieved_chunks)
     
     print("\n===== RESUME CONTEXT =====")
-    print(resume_context)
+    print(resume_context)'''
 
     ## Prompt Grounding
-    
+    '''model = get_gemini_model()
     grounded_prompt = build_resume_prompt(
     context=resume_context,
     question=query,
@@ -98,6 +109,83 @@ if __name__ == "__main__":
 
     print("\n===== GROUNDED PROMPT =====")
     print(grounded_prompt)
+
+    answer = generate_resume_answer(
+    model = model,
+    prompt=grounded_prompt,
+    )
+
+    print("\n===== RAG ANSWER =====")
+    print(answer)'''
+
+    '''query = "How many years of AWS experience do I have?"
+
+    answer = ask_resume(query)
+
+    print("\n===== RAG ANSWER =====")
+    print(answer) ## We can use this also in the place of that big code.
+
+    ## Structured resume output
+    resume_analysis = analyze_resume(resume)
+
+    print("\n===== RESUME ANALYSIS =====")
+    print(resume_analysis.model_dump())'''
+
+    ## Showing skill gaps
+    skill_gaps = detect_skill_gaps(
+    resume=resume,
+    job_description=job_description,
+    )
+
+    print("\n===== SKILL GAPS =====")
+    print(skill_gaps)
+
+    ## Explaining the skill gaps
+    skill_gap_analysis = explain_skill_gaps(
+    resume=resume,
+    job_description=job_description,
+    )
+
+    print("\n===== SKILL GAP ANALYSIS =====")
+    print(skill_gap_analysis.model_dump())
+
+
+    ## Imporovement Recommendation
+    improvement_recommendations = (
+    generate_improvement_recommendations(
+        skill_gaps
+    )
+    )
+    print("\n===== IMPROVEMENT RECOMMENDATIONS =====")
+    print(
+    improvement_recommendations.model_dump()
+    )
+
+    ## Skills matching with semantic meaning
+    semantic_evidence = find_semantic_skill_evidence(
+    resume=resume,
+    job_description=job_description,
+    )
+
+    print("\n===== SEMANTIC EVIDENCE =====")
+    print(semantic_evidence)
+
+    keyword_gaps = find_keyword_gaps(
+    resume,
+    job_description,
+    )
+
+    print("\n===== KEYWORD GAPS =====")
+    print(keyword_gaps)
+
+    ## Strengtning the Project
+    project_strengthening = strengthen_projects(
+    resume=resume,
+    job_description=job_description,
+    )
+
+    print("\n===== PROJECT STRENGTHENING =====")
+    print(project_strengthening.model_dump())
 
 ''' ## Going with the structured resume format
     print("\n***** Resume Skills *****")
