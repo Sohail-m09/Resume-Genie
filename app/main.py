@@ -19,11 +19,26 @@ from rag.resume_rag import ask_resume
 from analysis.resume_analyzer import analyze_resume
 from analysis.skill_gap_analyzer import detect_skill_gaps, explain_skill_gaps
 from analysis.semantic_evidence import find_semantic_skill_evidence
+from services.keyword_optimizer import find_keyword_gaps
+from analysis.project_strengthener import strengthen_projects
+from analysis.final_analysis import build_final_analysis
+from analysis.cover_letter_service import create_cover_letter
 from analysis.improvement_recommendations import (
     generate_improvement_recommendations,
 )
-from services.keyword_optimizer import find_keyword_gaps
-from analysis.project_strengthener import strengthen_projects
+from analysis.cover_letter_evidence import (
+    select_cover_letter_evidence,
+)
+from analysis.cover_letter_prompt import (
+    build_cover_letter_prompt,
+)
+from analysis.cover_letter_generator import (
+    generate_cover_letter,
+)
+from analysis.career_coach_prompt import (
+    build_career_coach_prompt,
+)
+
 
 def process_resume(file_path: str) -> tuple[Resume  ,list[Document]]:
     """
@@ -80,7 +95,7 @@ if __name__ == "__main__":
 
     ## Vector Store Information.
     print("\n===== VECTOR STORE =====")
-    print(f"Chunks stored in ChromaDB: {stored_count}")
+    print(f"Chunks stored in ChromaDB: {stored_count}")'''
 
     query = "Have I used python and it's libraries in the project?"
 
@@ -98,7 +113,7 @@ if __name__ == "__main__":
     resume_context = build_resume_context(retrieved_chunks)
     
     print("\n===== RESUME CONTEXT =====")
-    print(resume_context)'''
+    print(resume_context)
 
     ## Prompt Grounding
     '''model = get_gemini_model()
@@ -131,7 +146,7 @@ if __name__ == "__main__":
     print("\n===== RESUME ANALYSIS =====")
     print(resume_analysis.model_dump())'''
 
-    ## Showing skill gaps
+    '''## Showing skill gaps
     skill_gaps = detect_skill_gaps(
     resume=resume,
     job_description=job_description,
@@ -176,16 +191,73 @@ if __name__ == "__main__":
     )
 
     print("\n===== KEYWORD GAPS =====")
-    print(keyword_gaps)
+    print(keyword_gaps)'''
 
-    ## Strengtning the Project
+    '''## Strengtning the Project
     project_strengthening = strengthen_projects(
     resume=resume,
     job_description=job_description,
     )
 
     print("\n===== PROJECT STRENGTHENING =====")
-    print(project_strengthening.model_dump())
+    print(project_strengthening.model_dump())'''
+
+    final_analysis = build_final_analysis(
+    resume=resume,
+    job_description=job_description,
+    )
+
+    print("\n===== FINAL RESUME ANALYSIS =====")
+    print(final_analysis.model_dump())
+
+
+    '''## Cover Letter Evidence
+    cover_letter_evidence = select_cover_letter_evidence(
+    resume=resume,
+    job_description=job_description,
+    )
+
+    print("\n===== COVER LETTER EVIDENCE =====")
+    print(cover_letter_evidence.model_dump())
+
+    ## Cover Letter Prompt
+    cover_letter_prompt = build_cover_letter_prompt(
+    evidence=cover_letter_evidence,
+    job_description=job_description,
+    )
+
+    print("\n===== COVER LETTER PROMPT =====")
+    print(cover_letter_prompt)
+
+    ## Cover letter generation
+    cover_letter = generate_cover_letter(
+    prompt=cover_letter_prompt,
+    )
+
+    print("\n===== GENERATED COVER LETTER =====")
+    print(cover_letter.model_dump())'''
+
+    '''## Cover letter generation for all resumes 
+    cover_letter = create_cover_letter(
+    resume=resume,
+    job_description=job_description,
+    )
+
+    print("\n===== COVER LETTER =====")
+    print(cover_letter.model_dump())'''
+
+    ## CHecking the CAREER COACH Prompt
+    question = "Why is my match score low?"
+
+    coach_prompt = build_career_coach_prompt(
+    question=question,
+    resume_context=resume_context,
+    job_context=job_description.model_dump_json(indent=2),
+    analysis_context=final_analysis.model_dump_json(indent=2),
+    )
+
+    print("\n===== CAREER COACH PROMPT =====")
+    print(coach_prompt)
 
 ''' ## Going with the structured resume format
     print("\n***** Resume Skills *****")
