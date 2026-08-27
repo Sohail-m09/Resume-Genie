@@ -23,6 +23,9 @@ from services.keyword_optimizer import find_keyword_gaps
 from analysis.project_strengthener import strengthen_projects
 from analysis.final_analysis import build_final_analysis
 from analysis.cover_letter_service import create_cover_letter
+from analysis.career_coach import answer_resume_question
+from analysis.career_coach import answer_job_question
+from resume_generator.tailoring import generate_tailoring_plan
 from analysis.improvement_recommendations import (
     generate_improvement_recommendations,
 )
@@ -38,7 +41,21 @@ from analysis.cover_letter_generator import (
 from analysis.career_coach_prompt import (
     build_career_coach_prompt,
 )
-
+from analysis.career_coach import (
+    answer_with_resume_rag,
+)
+from analysis.career_coach_service import (
+    ask_career_coach,
+)
+from resume_generator.prioritization import (
+    prioritize_resume_content,
+)
+from resume_generator.tailoring import (
+    generate_tailored_resume,
+)
+from resume_generator.validator import (
+    validate_tailored_resume,
+)
 
 def process_resume(file_path: str) -> tuple[Resume  ,list[Document]]:
     """
@@ -97,7 +114,7 @@ if __name__ == "__main__":
     print("\n===== VECTOR STORE =====")
     print(f"Chunks stored in ChromaDB: {stored_count}")'''
 
-    query = "Have I used python and it's libraries in the project?"
+    '''query = "Have I used python and it's libraries in the project?"
 
     ## Retrieve relevant resume chunks from ChromaDB
     retrieved_chunks = retrieve_resume_context(query)
@@ -113,7 +130,7 @@ if __name__ == "__main__":
     resume_context = build_resume_context(retrieved_chunks)
     
     print("\n===== RESUME CONTEXT =====")
-    print(resume_context)
+    print(resume_context)'''
 
     ## Prompt Grounding
     '''model = get_gemini_model()
@@ -202,13 +219,13 @@ if __name__ == "__main__":
     print("\n===== PROJECT STRENGTHENING =====")
     print(project_strengthening.model_dump())'''
 
-    final_analysis = build_final_analysis(
+    '''final_analysis = build_final_analysis(
     resume=resume,
     job_description=job_description,
     )
 
     print("\n===== FINAL RESUME ANALYSIS =====")
-    print(final_analysis.model_dump())
+    print(final_analysis.model_dump())'''
 
 
     '''## Cover Letter Evidence
@@ -246,7 +263,7 @@ if __name__ == "__main__":
     print("\n===== COVER LETTER =====")
     print(cover_letter.model_dump())'''
 
-    ## CHecking the CAREER COACH Prompt
+    '''## CHecking the CAREER COACH Prompt
     question = "Why is my match score low?"
 
     coach_prompt = build_career_coach_prompt(
@@ -257,9 +274,9 @@ if __name__ == "__main__":
     )
 
     print("\n===== CAREER COACH PROMPT =====")
-    print(coach_prompt)
+    print(coach_prompt)'''
 
-''' ## Going with the structured resume format
+    '''## Going with the structured resume format
     print("\n***** Resume Skills *****")
     print(resume.skills)
 
@@ -279,4 +296,162 @@ if __name__ == "__main__":
     for i, chunk in enumerate(chunks, start=1):
         print(f"\n===== CHUNK {i} =====")
         print(chunk.page_content)
-        print("Metadata:", chunk.metadata) '''
+        print("Metadata:", chunk.metadata)'''
+
+    '''question = "What Python libraries have I used?"
+
+    answer = answer_resume_question(
+    question=question,
+    resume_context=resume_context,
+    )
+
+    print("\n===== CAREER COACH ANSWER =====")
+    print(answer)'''
+
+    '''question = "What are the main required skills for this job?"
+
+    job_context = job_description.model_dump_json(
+        indent=2
+    )
+
+    answer = answer_job_question(
+        question=question,
+        job_context=job_context,
+    )
+
+    print("\n===== JOB-AWARE CAREER COACH =====")
+    print(answer)'''
+
+    # ==================================================
+    # PHASE 9.5 — RAG-POWERED CAREER COACH
+    # ==================================================
+
+    '''question = (
+    "Based on my resume, what area should I improve "
+    "to become a stronger candidate for machine learning roles?"
+    )
+
+    answer = answer_with_resume_rag(
+        question=question,
+    )
+
+    print("\n===== RAG-POWERED CAREER COACH =====")
+    print(answer)'''
+
+    # ==================================================
+    # PHASE 9.6 — COMPLETE AI CAREER COACH
+    # ==================================================
+
+    question = "How can I become the most preferred candidate for this role?"
+
+    analysis_context = """
+    Overall score: 25.64
+
+    Matched required skills:
+    Python
+    SQL
+
+    Missing required skills:
+    - automated machine learning (AutoML) frameworks
+    - hyperparameter tuning
+    - machine learning model packaging and deployment
+    - model evaluation techniques
+
+    Matched preferred skills:
+    None
+
+    Missing preferred skills:
+    - cybersecurity data analytics
+    - data versioning
+    - financial risk modeling
+    - MLOps
+
+    Semantic evidence:
+    model evaluation techniques → Model Evaluation → 0.9305
+    """
+
+    '''answer = ask_career_coach(
+        question=question,
+        resume=resume,
+        job_description=job_description,
+        analysis_context=analysis_context,
+    )
+
+    print("\n===== COMPLETE CAREER COACH =====")
+    print(answer)'''
+
+    # ==================================================
+    # PHASE 10.2 — TAILORING PLAN
+    # ==================================================
+
+    tailoring_plan = generate_tailoring_plan(
+        resume=resume,
+        job_description=job_description,
+        analysis_context=analysis_context,
+    )
+
+    print("\n===== RESUME TAILORING PLAN =====")
+    print(tailoring_plan.model_dump())
+
+    prioritized_resume = prioritize_resume_content(
+        resume=resume,
+        tailoring_plan=tailoring_plan,
+    )
+
+    tailored_resume = generate_tailored_resume(
+    resume=resume,
+    job_description=job_description,
+    tailoring_plan=tailoring_plan,
+    )
+
+    print("\n===== TAILORED STRUCTURED RESUME =====")
+    print(tailored_resume.model_dump())
+
+    validation_result = validate_tailored_resume(
+    original_resume=resume,
+    tailored_resume=tailored_resume,
+    )
+
+    print("\n===== TAILORED RESUME VALIDATION =====")
+    print(validation_result)
+
+    '''# ==================================================
+    # PHASE 10.3 — RESUME PRIORITIZATION
+    # ==================================================
+
+    prioritized_resume = prioritize_resume_content(
+        resume=resume,
+        tailoring_plan=tailoring_plan,
+    )
+
+    print("\n===== RESUME PRIORITIZATION =====")
+
+    print(
+        "Prioritized Skills:",
+        prioritized_resume["prioritized_skills"],
+    )
+
+    print(
+        "Deprioritized Skills:",
+        prioritized_resume["deprioritized_skills"],
+    )
+
+    print("\nPrioritized Projects:")
+
+    for item in prioritized_resume["prioritized_projects"]:
+
+        project = item["project"]
+
+        print(
+            f"Priority: {item['priority']} | "
+            f"Project: {project.name}"
+        )
+
+        print(
+            f"Reason: {item['reason']}"
+        )
+
+    print(
+        "\nUnsupported Requirements:",
+        prioritized_resume["unsupported_requirements"],
+    )'''
