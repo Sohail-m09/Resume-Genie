@@ -54,15 +54,39 @@ def validate_tailored_resume(
     unsupported_certifications = sorted(
         tailored_certifications - original_certifications
     )
+    
+    allowed_sections = {
+        "summary",
+        "skills",
+        "education",
+        "projects",
+        "experience",
+        "certifications",
+    }
+
+    invalid_sections = [
+        section
+        for section in tailored_resume.section_order
+        if section not in allowed_sections
+    ]
+
+    duplicate_sections = (
+        len(tailored_resume.section_order)
+        != len(set(tailored_resume.section_order))
+    )
 
     return {
         "valid": (
             not unsupported_projects
             and not experience_violation
             and not unsupported_certifications
+            and not invalid_sections
+            and not duplicate_sections
         ),
         "unsupported_projects": unsupported_projects,
         "experience_violation": experience_violation,
+        "invalid_sections": invalid_sections,
+        "duplicate_sections": duplicate_sections,
         "unsupported_certifications": (
             unsupported_certifications
         ),

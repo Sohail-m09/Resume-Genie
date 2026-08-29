@@ -25,7 +25,7 @@ from analysis.final_analysis import build_final_analysis
 from analysis.cover_letter_service import create_cover_letter
 from analysis.career_coach import answer_resume_question
 from analysis.career_coach import answer_job_question
-from resume_generator.tailoring import generate_tailoring_plan
+from resume_generator.tailoring import generate_tailoring_plan, generate_tailored_resume
 from analysis.improvement_recommendations import (
     generate_improvement_recommendations,
 )
@@ -55,6 +55,18 @@ from resume_generator.tailoring import (
 )
 from resume_generator.validator import (
     validate_tailored_resume,
+)
+from resume_generator.latex_generator import (
+    generate_latex,
+)
+from resume_generator.pdf_builder import (
+    build_pdf,
+)
+from resume_generator.ats_validator import (
+    calculate_ats_score,
+)
+from resume_generator.customization import (
+    apply_resume_customization,
 )
 
 def process_resume(file_path: str) -> tuple[Resume  ,list[Document]]:
@@ -415,7 +427,61 @@ if __name__ == "__main__":
     print("\n===== TAILORED RESUME VALIDATION =====")
     print(validation_result)
 
+    # ==================================================
+    # PHASE 10.8 — ATS VALIDATION
+    # ==================================================
+
+    ats_result = calculate_ats_score(
+        original_resume=resume,
+        tailored_resume=tailored_resume,
+        job_description=job_description,
+    )
+
+    print("\n===== ATS RESUME SCORE =====")
+    print(ats_result)
+
     '''# ==================================================
+    # PHASE 10.5 — LATEX GENERATION
+    # ==================================================
+
+    if validation_result["valid"]:
+
+        latex_source = generate_latex(
+            tailored_resume=tailored_resume,
+            original_resume=resume,
+        )
+
+        print("\n===== LATEX SOURCE =====")
+        print(latex_source)
+
+    else:
+
+        print(
+            "\nLaTeX generation skipped because "
+            "tailored resume validation failed."
+        )
+
+    # ==================================================
+    # PHASE 10.7 — PDF COMPILATION
+    # ==================================================
+
+    if validation_result["valid"]:
+
+        pdf_path = build_pdf(
+            latex_source=latex_source,
+        )
+
+        print("\n===== PDF CREATED =====")
+        print(pdf_path)
+
+    else:
+
+        print(
+            "\nPDF generation skipped because "
+            "tailored resume validation failed."
+        )'''
+
+    # ==================================================
     # PHASE 10.3 — RESUME PRIORITIZATION
     # ==================================================
 
@@ -454,4 +520,132 @@ if __name__ == "__main__":
     print(
         "\nUnsupported Requirements:",
         prioritized_resume["unsupported_requirements"],
-    )'''
+    )
+
+    # ==================================================
+    # PHASE 10.9.3 — PROJECT REMOVAL INTEGRATION TEST
+    # ==================================================
+
+    customized_plan = apply_resume_customization(
+        tailoring_plan=tailoring_plan,
+        removed_projects=[
+            "Bank Loan Prediction"
+        ],
+    )
+
+    print("\n===== CUSTOMIZED TAILORING PLAN =====")
+    print(
+        customized_plan.model_dump()
+    )
+
+
+    '''customized_tailored_resume = generate_tailored_resume(
+        resume=resume,
+        job_description=job_description,
+        tailoring_plan=customized_plan,
+    )
+
+    print("\n===== CUSTOMIZED TAILORED RESUME =====")
+    print(
+        customized_tailored_resume.model_dump()
+    )
+
+    customized_validation = validate_tailored_resume(
+        original_resume=resume,
+        tailored_resume=customized_tailored_resume,
+    )
+
+    print("\n===== CUSTOMIZED RESUME VALIDATION =====")
+    print(customized_validation)'''
+
+
+    '''customized_plan = apply_resume_customization(
+        tailoring_plan=customized_plan,
+        section_order=[
+            "summary",
+            "education",
+            "skills",
+            "projects",
+            "certifications",
+        ],
+    )
+
+    customized_tailored_resume = generate_tailored_resume(
+        resume=resume,
+        job_description=job_description,
+        tailoring_plan=customized_plan,
+    )
+
+    print("\n===== REORDERED TAILORED RESUME =====")
+    print(
+        customized_tailored_resume.model_dump()
+    )
+
+    customized_validation = validate_tailored_resume(
+        original_resume=resume,
+        tailored_resume=customized_tailored_resume,
+    )
+
+    print("\n===== REORDERED RESUME VALIDATION =====")
+    print(customized_validation)'''
+
+    # ==================================================
+    # PHASE 10.9.4 — FULL CUSTOMIZED END-TO-END TEST
+    # ==================================================
+
+    customized_tailored_resume = generate_tailored_resume(
+        resume=resume,
+        job_description=job_description,
+        tailoring_plan=customized_plan,
+    )
+
+    print("\n===== FINAL CUSTOMIZED RESUME =====")
+    print(
+        customized_tailored_resume.model_dump()
+    )
+
+
+    customized_validation = validate_tailored_resume(
+        original_resume=resume,
+        tailored_resume=customized_tailored_resume,
+    )
+
+    print("\n===== FINAL CUSTOMIZED VALIDATION =====")
+    print(customized_validation)
+
+
+    if customized_validation["valid"]:
+
+        customized_latex = generate_latex(
+            tailored_resume=customized_tailored_resume,
+            original_resume=resume,
+        )
+
+        print("\n===== FINAL CUSTOMIZED LATEX =====")
+        print(customized_latex)
+
+
+        customized_pdf_path = build_pdf(
+            latex_source=customized_latex,
+            filename="customized_tailored_resume",
+        )
+
+        print("\n===== FINAL CUSTOMIZED PDF =====")
+        print(customized_pdf_path)
+
+
+        customized_ats = calculate_ats_score(
+            original_resume=resume,
+            tailored_resume=customized_tailored_resume,
+            job_description=job_description,
+        )
+
+        print("\n===== FINAL CUSTOMIZED ATS SCORE =====")
+        print(customized_ats)
+
+    else:
+
+        print(
+            "\nFinal PDF and ATS generation skipped "
+            "because validation failed."
+        )
