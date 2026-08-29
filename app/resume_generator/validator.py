@@ -1,5 +1,54 @@
 from schemas.resume import Resume
 from resume_generator.tailoring import TailoredResume
+import re
+
+
+def normalize_certification(
+    certification: str,
+) -> str:
+    """
+    Normalize certification text for
+    format-tolerant comparison.
+    """
+
+    return re.sub(
+        r"[^a-z0-9]+",
+        " ",
+        certification.lower(),
+    ).strip()
+
+
+def certification_is_supported(
+    tailored_certification: str,
+    original_certifications: set[str],
+) -> bool:
+    """
+    Check whether a tailored certification is
+    supported by an original certification despite
+    harmless formatting differences.
+    """
+
+    tailored = normalize_certification(
+        tailored_certification
+    )
+
+    for original in original_certifications:
+
+        normalized_original = normalize_certification(
+            original
+        )
+
+        if tailored == normalized_original:
+            return True
+
+        if (
+            tailored in normalized_original
+            or normalized_original in tailored
+        ):
+            return True
+
+    return False
+
 
 
 def validate_tailored_resume(
@@ -41,9 +90,9 @@ def validate_tailored_resume(
         and tailored_experience
     )
 
-    original_certifications = {
-        str(certification).lower()
-        for certification in original_resume.certifications
+    original_certifications = { 
+        str(certification)
+        for certification in original_resume.certifications 
     }
 
     tailored_certifications = {
@@ -51,9 +100,14 @@ def validate_tailored_resume(
         for certification in tailored_resume.certifications
     }
 
-    unsupported_certifications = sorted(
-        tailored_certifications - original_certifications
-    )
+    unsupported_certifications = [ 
+        certification 
+        for certification in tailored_resume.certifications 
+        if not certification_is_supported( 
+            certification, 
+            original_certifications, 
+        ) 
+    ]
     
     allowed_sections = {
         "summary",

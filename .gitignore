@@ -4,3 +4,11 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .ipynb_checkpoints/
+
+# Personal and generated data
+data/*.pdf
+data/uploads/
+data/output/
+
+# Local vector database
+data/chroma/

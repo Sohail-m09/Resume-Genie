@@ -354,8 +354,8 @@ def calculate_job_title_alignment(
     job_description: JobDescription,
 ) -> float:
     """
-    Calculate explainable job-title alignment using
-    role-family phrases rather than individual-word overlap.
+    Calculate job-title alignment using the resume summary,
+    skills, project names, and project technologies.
     """
 
     if not job_description.job_title:
@@ -365,41 +365,27 @@ def calculate_job_title_alignment(
         job_description.job_title
     )
 
-    summary = normalize_text(
-        resume.summary
+    evidence_parts = [
+        resume.summary or "",
+        " ".join(resume.skills),
+    ]
+
+    for project in resume.projects:
+        evidence_parts.append(
+            project.name
+        )
+
+        evidence_parts.extend(
+            project.technologies
+        )
+
+        evidence_parts.extend(
+            project.bullets
+        )
+
+    resume_evidence = normalize_text(
+        " ".join(evidence_parts)
     )
-
-    # --------------------------------------------------
-    # 1. Exact full-title match
-    # --------------------------------------------------
-
-    if job_title in summary:
-        return 100.0
-
-    # --------------------------------------------------
-    # 2. Strong role-family phrases
-    # --------------------------------------------------
-
-    role_phrases = [
-        "data scientist",
-        "machine learning analyst",
-        "machine learning engineer",
-        "data analyst",
-    ]
-
-    matched_role_phrases = [
-        phrase
-        for phrase in role_phrases
-        if phrase in summary
-        and phrase in job_title
-    ]
-
-    if matched_role_phrases:
-        return 100.0
-
-    # --------------------------------------------------
-    # 3. Related role-family alignment
-    # --------------------------------------------------
 
     role_families = {
         "data_science": [
@@ -408,6 +394,8 @@ def calculate_job_title_alignment(
         ],
         "machine_learning": [
             "machine learning",
+            "machine learning analyst",
+            "machine learning engineer",
             "ml engineer",
             "ml analyst",
         ],
@@ -417,39 +405,47 @@ def calculate_job_title_alignment(
         ],
     }
 
-    matched_families = []
+    job_families = set()
 
     for family, phrases in role_families.items():
 
-        job_has_family = any(
+        if any(
             phrase in job_title
             for phrase in phrases
-        )
-
-        resume_has_family = any(
-            phrase in summary
-            for phrase in phrases
-        )
-
-        if (
-            job_has_family
-            and resume_has_family
         ):
-            matched_families.append(
+            job_families.add(
                 family
             )
 
-    if len(matched_families) >= 2:
+    if not job_families:
+        return 0.0
+
+    matched_families = set()
+
+    for family, phrases in role_families.items():
+
+        if family not in job_families:
+            continue
+
+        if any(
+            phrase in resume_evidence
+            for phrase in phrases
+        ):
+            matched_families.add(
+                family
+            )
+
+    if len(matched_families) == len(
+        job_families
+    ):
         return 100.0
 
-    if len(matched_families) == 1:
+    if matched_families:
         return 75.0
 
-    # --------------------------------------------------
-    # 4. No meaningful role-family alignment
-    # --------------------------------------------------
-
     return 0.0
+
+
 
 
 

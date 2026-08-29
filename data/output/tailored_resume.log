@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.8.29)  29 AUG 2026 04:23
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.8.29)  30 AUG 2026 04:26
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -328,21 +328,21 @@ Package hyperref Info: Link coloring OFF on input line 41.
 \openout3 = `tailored_resume.out'.
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 74--76
+Underfull \hbox (badness 10000) in paragraph at lines 75--77
 
  []
 
 LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 7
-6.
+7.
 (C:\Users\Shaqeb\AppData\Local\Programs\MiKTeX\tex/latex/lm\ts1lmr.fd
 File: ts1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
-Underfull \hbox (badness 10000) in paragraph at lines 80--82
+Underfull \hbox (badness 10000) in paragraph at lines 82--84
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 87--89
+Underfull \hbox (badness 10000) in paragraph at lines 89--91
 
  []
 
@@ -362,18 +362,18 @@ Package rerunfilecheck Info: File `tailored_resume.out' has not changed.
 Here is how much of TeX's memory you used:
  9039 strings out of 467871
  141378 string characters out of 5417892
- 570863 words of memory out of 5000000
+ 572863 words of memory out of 5000000
  37852 multiletter control sequences out of 15000+600000
  651107 words of font info for 49 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,5n,79p,345b,438s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,5n,79p,412b,438s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Users/Shaqeb/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx10.p
 fb><C:/Users/Shaqeb/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx12.
 pfb><C:/Users/Shaqeb/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr10.
 pfb><C:/Users/Shaqeb/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmri10
 .pfb>
-Output written on D:\Resume-Genie\data\output\tailored_resume.pdf (1 page, 1161
-80 bytes).
+Output written on D:\Resume-Genie\data\output\tailored_resume.pdf (1 page, 1174
+40 bytes).
 PDF statistics:
  39 PDF objects out of 1000 (max. 8388607)
  2 named destinations out of 1000 (max. 500000)

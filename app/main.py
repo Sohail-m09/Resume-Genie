@@ -68,6 +68,17 @@ from resume_generator.ats_validator import (
 from resume_generator.customization import (
     apply_resume_customization,
 )
+from application.job_input import (
+    process_job_description_input,
+)
+from application.resume_input import (
+    process_resume_input,
+)
+from application.pipeline import (
+    prepare_application,
+    analyze_application,
+)
+from application.pipeline import run_resume_genie
 
 def process_resume(file_path: str) -> tuple[Resume  ,list[Document]]:
     """
@@ -392,7 +403,7 @@ if __name__ == "__main__":
     print("\n===== COMPLETE CAREER COACH =====")
     print(answer)'''
 
-    # ==================================================
+    '''# ==================================================
     # PHASE 10.2 — TAILORING PLAN
     # ==================================================
 
@@ -438,7 +449,7 @@ if __name__ == "__main__":
     )
 
     print("\n===== ATS RESUME SCORE =====")
-    print(ats_result)
+    print(ats_result)'''
 
     '''# ==================================================
     # PHASE 10.5 — LATEX GENERATION
@@ -481,7 +492,7 @@ if __name__ == "__main__":
             "tailored resume validation failed."
         )'''
 
-    # ==================================================
+    '''# ==================================================
     # PHASE 10.3 — RESUME PRIORITIZATION
     # ==================================================
 
@@ -536,7 +547,7 @@ if __name__ == "__main__":
     print("\n===== CUSTOMIZED TAILORING PLAN =====")
     print(
         customized_plan.model_dump()
-    )
+    )'''
 
 
     '''customized_tailored_resume = generate_tailored_resume(
@@ -589,7 +600,7 @@ if __name__ == "__main__":
     print("\n===== REORDERED RESUME VALIDATION =====")
     print(customized_validation)'''
 
-    # ==================================================
+    '''# ==================================================
     # PHASE 10.9.4 — FULL CUSTOMIZED END-TO-END TEST
     # ==================================================
 
@@ -648,4 +659,217 @@ if __name__ == "__main__":
         print(
             "\nFinal PDF and ATS generation skipped "
             "because validation failed."
+        )'''
+
+    '''# ==================================================
+    # PHASE 10.10.1 — PASTED JD INPUT TEST
+    # ==================================================
+
+    pasted_jd = """
+    Junior Data Scientist / Machine Learning Analyst
+
+    Required Skills:
+    Python
+    SQL
+    Model Evaluation
+    Hyperparameter Tuning
+    Automated Machine Learning frameworks
+
+    Preferred Skills:
+    MLOps
+    Data Versioning
+    Financial Risk Modeling
+    Cybersecurity Data Analytics
+
+    Qualifications:
+    Bachelor's degree in Computer Science, Engineering,
+    Mathematics, or a related analytical field.
+
+    Responsibilities:
+    Design, train, and deploy machine learning models.
+    Perform exploratory data analysis and feature engineering.
+    Build data pipelines and dashboards.
+    """
+
+    job_description_from_text = process_job_description_input(
+        job_text=pasted_jd,
+    )
+
+    print(
+        "\n===== PASTED JD STRUCTURED OUTPUT ====="
+    )
+
+    print(
+        job_description_from_text.model_dump()
+    )
+
+    from application.job_input import (
+        process_job_description_input,
+    )
+
+    job_description_from_pdf = process_job_description_input(
+        pdf_path=str(job_path),
+    )
+
+    print(
+        "\n===== PDF JD STRUCTURED OUTPUT ====="
+    )
+
+    print(
+        job_description_from_pdf.model_dump()
+    )'''
+
+    '''# ==================================================
+    # PHASE 10.10.2a — RESUME INPUT TEST
+    # ==================================================
+
+    resume_from_input, chunks_from_input = (
+        process_resume_input(
+            str(resume_path)
         )
+    )
+
+    print("\n===== RESUME INPUT TEST =====")
+    print(
+        resume_from_input.model_dump()
+    )
+
+    print(
+        "\nNumber of chunks:",
+        len(chunks_from_input),
+    )'''
+
+    '''# ==================================================
+    # PHASE 10.10.2b — APPLICATION INPUT PIPELINE
+    # ==================================================
+
+    resume_result, job_result = prepare_application_inputs(
+        resume_path=str(resume_path),
+
+        job_text="""
+        Junior Data Scientist / Machine Learning Analyst
+
+        Required Skills:
+        Python
+        SQL
+        Model Evaluation
+        Hyperparameter Tuning
+
+        Preferred Skills:
+        MLOps
+        Data Versioning
+
+        Responsibilities:
+        Design, train, and deploy machine learning models.
+        Perform exploratory data analysis and feature engineering.
+        """,
+    )
+
+    print("\n===== APPLICATION INPUT PIPELINE =====")
+
+    print("\n===== RESUME =====")
+    print(
+        resume_result.model_dump()
+    )
+
+    print("\n===== JOB DESCRIPTION =====")
+    print(
+        job_result.model_dump()
+    )'''
+
+    '''application_inputs = prepare_application(
+        resume_path=str(resume_path),
+
+        job_text="""
+        Junior Data Scientist / Machine Learning Analyst
+
+        Required Skills:
+        Python
+        SQL
+        Model Evaluation
+        Hyperparameter Tuning
+
+        Preferred Skills:
+        MLOps
+        Data Versioning
+
+        Responsibilities:
+        Design, train, and deploy machine learning models.
+        Perform exploratory data analysis and feature engineering.
+        """,
+    )
+
+    print("\n===== APPLICATION INPUTS =====")
+    print(
+        application_inputs.model_dump()
+    )
+
+    # ==================================================
+    # PHASE 10.10.3 — ANALYSIS ORCHESTRATION
+    # ==================================================
+
+    analysis_result = analyze_application(
+        resume=application_inputs.resume,
+        job_description=application_inputs.job_description,
+    )
+
+    print("\n===== APPLICATION ANALYSIS =====")
+    print(
+        analysis_result.model_dump()
+    )'''
+
+    result = run_resume_genie(
+        resume_path=str(resume_path),
+
+        job_text="""
+        Junior Data Scientist / Machine Learning Analyst
+
+        Required Skills:
+        Python
+        SQL
+        Model Evaluation
+        Hyperparameter Tuning
+
+        Preferred Skills:
+        MLOps
+        Data Versioning
+
+        Responsibilities:
+        Design, train, and deploy machine learning models.
+        Perform exploratory data analysis and feature engineering.
+        """,
+
+        section_order=[
+            "summary",
+            "education",
+            "skills",
+            "projects",
+            "certifications",
+        ],
+
+        removed_projects=[
+            "Bank Loan Prediction",
+        ],
+    )
+
+    print("\n===== RESUME GENIE RESULT =====")
+
+    print("\nAnalysis:")
+    print(
+        result["analysis"].model_dump()
+    )
+
+    print("\nValidation:")
+    print(
+        result["validation"]
+    )
+
+    print("\nATS:")
+    print(
+        result["ats"]
+    )
+
+    print("\nPDF:")
+    print(
+        result["pdf"]
+    )
