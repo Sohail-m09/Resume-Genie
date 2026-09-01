@@ -2,10 +2,14 @@ from pathlib import Path
 
 from fastapi import (
     APIRouter,
+    Depends,
     File,
+    Header,
     HTTPException,
     UploadFile,
 )
+
+from sqlalchemy.orm import Session
 
 from backend.schemas.requests import (
     JobTextRequest,
@@ -22,6 +26,14 @@ from backend.services.file_service import (
     cleanup_file,
 )
 
+from backend.services.db_dependency import (
+    get_db,
+)
+
+from database.services.guest_session import (
+    get_or_create_guest_user,
+)
+
 
 router = APIRouter(
     prefix="/api/job",
@@ -32,37 +44,57 @@ router = APIRouter(
 @router.post("/text")
 def upload_job_text(
     request: JobTextRequest,
+    session_id: str = Header(
+        ...,
+        alias="X-Session-ID",
+    ),
+    db: Session = Depends(get_db),
 ):
     """
-    Process a pasted job description.
+    Process and persist a pasted job description.
     """
 
     try:
 
-        job_description = process_job_text(
-            request.job_text
+        user = get_or_create_guest_user(
+            db=db,
+            session_id=session_id,
+        )
+
+        result = process_job_text(
+            db=db,
+            user_id=user.id,
+            job_text=request.job_text,
         )
 
         return {
+            "user_id": user.id,
+            "job_id": result["job"].id,
             "job_description": (
-                job_description.model_dump()
-            )
+                result[
+                    "job_description"
+                ].model_dump()
+            ),
         }
 
-    except Exception as exc:
-
+    except Exception:
         raise HTTPException(
             status_code=500,
-            detail=str(exc),
+            detail="Job description processing failed.",
         )
 
 
 @router.post("/pdf")
 async def upload_job_pdf(
     file: UploadFile = File(...),
+    session_id: str = Header(
+        ...,
+        alias="X-Session-ID",
+    ),
+    db: Session = Depends(get_db),
 ):
     """
-    Upload and process a job-description PDF.
+    Upload, process, and persist a job-description PDF.
     """
 
     if file.content_type != "application/pdf":
@@ -81,10 +113,6 @@ async def upload_job_pdf(
     upload_directory.mkdir(
         parents=True,
         exist_ok=True,
-    )
-
-    file_path = (
-        upload_directory / file.filename
     )
 
     content = await file.read()
@@ -109,16 +137,30 @@ async def upload_job_pdf(
 
     try:
 
-        job_description = process_job_pdf(
-            str(file_path)
+        user = get_or_create_guest_user(
+            db=db,
+            session_id=session_id,
+        )
+
+        result = process_job_pdf(
+            db=db,
+            user_id=user.id,
+            file_path=str(file_path),
         )
 
         return {
             "filename": safe_filename,
+            "user_id": user.id,
+            "job_id": result["job"].id,
             "job_description": (
-                job_description.model_dump()
+                result[
+                    "job_description"
+                ].model_dump()
             ),
         }
+
+    except HTTPException:
+        raise
 
     except Exception:
         raise HTTPException(
@@ -131,4 +173,3 @@ async def upload_job_pdf(
         cleanup_file(
             str(file_path)
         )
-

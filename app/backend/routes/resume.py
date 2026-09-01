@@ -1,13 +1,28 @@
+from pathlib import Path
+
 from fastapi import (
     APIRouter,
+    Depends,
     File,
+    Header,
     HTTPException,
     UploadFile,
+)
+
+from sqlalchemy.orm import Session
+
+from backend.services.db_dependency import (
+    get_db,
+)
+
+from database.services.guest_session import (
+    get_or_create_guest_user,
 )
 
 from backend.services.resume_service import (
     process_uploaded_resume,
 )
+
 from backend.services.file_service import (
     validate_pdf_file,
     sanitize_filename,
@@ -24,9 +39,14 @@ router = APIRouter(
 @router.post("/upload")
 async def upload_resume(
     file: UploadFile = File(...),
+    session_id: str = Header(
+        ...,
+        alias="X-Session-ID",
+    ),
+    db: Session = Depends(get_db),
 ):
     """
-    Upload and process a resume PDF.
+    Upload and process a resume PDF for a guest session.
     """
 
     if file.content_type != "application/pdf":
@@ -35,21 +55,13 @@ async def upload_resume(
             detail="Only PDF resume files are supported.",
         )
 
-    upload_directory = "data/uploads"
-
-    from pathlib import Path
-
-    directory = Path(
-        upload_directory
+    upload_directory = Path(
+        "data/uploads"
     )
 
-    directory.mkdir(
+    upload_directory.mkdir(
         parents=True,
         exist_ok=True,
-    )
-
-    file_path = (
-        directory / file.filename
     )
 
     content = await file.read()
@@ -65,7 +77,7 @@ async def upload_resume(
     )
 
     file_path = (
-        directory / safe_filename
+        upload_directory / safe_filename
     )
 
     file_path.write_bytes(
@@ -74,19 +86,29 @@ async def upload_resume(
 
     try:
 
+        user = get_or_create_guest_user(
+            db=db,
+            session_id=session_id,
+        )
+
         result = process_uploaded_resume(
-            str(file_path)
+            db=db,
+            file_path=str(file_path),
+            user_id=user.id,
         )
 
         return {
             "filename": safe_filename,
-            "chunk_count": result[
-                "chunk_count"
-            ],
+            "user_id": user.id,
+            "resume_id": result["resume_id"],
+            "chunk_count": result["chunk_count"],
             "resume": (
                 result["resume"].model_dump()
             ),
         }
+
+    except HTTPException:
+        raise
 
     except Exception:
         raise HTTPException(
@@ -99,4 +121,3 @@ async def upload_resume(
         cleanup_file(
             str(file_path)
         )
-

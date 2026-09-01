@@ -30,7 +30,11 @@ def get_chroma_collection():
     )
 
 
-def store_resume_chunks(chunks) -> int:
+def store_resume_chunks(
+        chunks,
+        user_id: int,
+        filename: str,
+        ) -> int:
     """
     Generate BGE embeddings for resume chunks
     and store them in ChromaDB.
@@ -52,7 +56,9 @@ def store_resume_chunks(chunks) -> int:
 
     for i, chunk in enumerate(chunks, start=1):
 
-        chunk_id = f"resume_chunk_{i}"
+        chunk_id = (
+            f"user_{user_id}_resume_chunk{i}"
+        )
 
         ids.append(chunk_id)
         documents.append(chunk.page_content)
@@ -68,9 +74,10 @@ def store_resume_chunks(chunks) -> int:
 
         metadatas.append(
             {
-                "source": "Sohail_Momin.pdf",
+                "source": filename,
                 "page": chunk.metadata.get("page"),
                 "page_label": chunk.metadata.get("page_label"),
+                "user_id" : user_id
             }
         )
 

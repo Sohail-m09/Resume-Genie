@@ -55,6 +55,7 @@ def answer_with_resume_rag(
     question: str,
     job_context: str | None = None,
     analysis_context: str | None = None,
+    user_id: int | None = None,
 ) -> str:
     """
     Answer a Career Coach question using dynamically retrieved
@@ -63,7 +64,8 @@ def answer_with_resume_rag(
 
     # 1. Retrieve relevant resume chunks
     retrieved_chunks = retrieve_resume_context(
-        question
+        question,
+        user_id = user_id
     )
 
     # 2. Build resume context

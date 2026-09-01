@@ -24,6 +24,12 @@ from backend.routes.ats import (
 from backend.routes.pdf import (
     router as pdf_router,
 )
+from backend.routes.resume_genie import (
+    router as resume_genie_router,
+)
+from backend.routes.history import (
+    router as history_router,
+)
 
 app = FastAPI(
     title="Resume Genie API",
@@ -57,4 +63,10 @@ app.include_router(
 )
 app.include_router(
     pdf_router,
+)
+app.include_router(
+    resume_genie_router,
+)
+app.include_router(
+    history_router,
 )

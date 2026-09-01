@@ -1,4 +1,4 @@
-import pytest
+import sbtest
 from fastapi import HTTPException
 
 from backend.services.request_validation import (
@@ -21,7 +21,7 @@ def test_job_pdf_only():
 
 
 def test_both_job_inputs_rejected():
-    with pytest.raises(HTTPException) as exc:
+    with sbtest.raises(HTTPException) as exc:
 
         validate_job_input(
             job_text="Junior Data Scientist with Python and SQL.",
@@ -32,7 +32,7 @@ def test_both_job_inputs_rejected():
 
 
 def test_missing_job_input_rejected():
-    with pytest.raises(HTTPException) as exc:
+    with sbtest.raises(HTTPException) as exc:
 
         validate_job_input(
             job_text=None,

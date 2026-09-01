@@ -25,10 +25,12 @@ def get_resume_collection():
     )
 
 
+
 def retrieve_resume_chunks(
     query: str,
     top_k: int = 3,
     source: str | None = None,
+    user_id: int | None = None,
 ) -> dict:
     """
     Retrieve the most relevant resume chunks for a query.
@@ -37,6 +39,7 @@ def retrieve_resume_chunks(
         query: User/search query.
         top_k: Number of chunks to retrieve.
         source: Optional source filename filter.
+        user_id: Optional user ID for multi-user isolation.
 
     Returns:
         ChromaDB retrieval result.
@@ -56,9 +59,28 @@ def retrieve_resume_chunks(
         "n_results": top_k,
     }
 
+    filters = []
+
+    if user_id is not None:
+        filters.append(
+            {
+                "user_id": user_id
+            }
+        )
+
     if source:
+        filters.append(
+            {
+                "source": source
+            }
+        )
+
+    if len(filters) == 1:
+        query_kwargs["where"] = filters[0]
+
+    elif len(filters) > 1:
         query_kwargs["where"] = {
-            "source": source
+            "$and": filters
         }
 
     results = collection.query(
@@ -67,10 +89,13 @@ def retrieve_resume_chunks(
 
     return results
 
+
+
 def retrieve_resume_context(
     query: str,
     top_k: int = 3,
     source: str | None = None,
+    user_id: int | None = None,
 ) -> list[dict]:
     """
     Retrieve relevant resume chunks in an application-friendly format.
@@ -88,6 +113,7 @@ def retrieve_resume_context(
         query=query,
         top_k=top_k,
         source=source,
+        user_id = user_id
     )
 
     documents = results["documents"][0]
