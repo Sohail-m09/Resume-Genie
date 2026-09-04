@@ -11,12 +11,12 @@ from backend.services.db_dependency import (
     get_db,
 )
 
-from backend.schemas.career_coach import (
-    CareerCoachRequest,
+from backend.schemas.cover_letter import (
+    CoverLetterRequest,
 )
 
-from backend.services.career_coach_service import (
-    ask_career_coach,
+from backend.services.cover_letter_service import (
+    generate_cover_letter,
 )
 
 from database.repositories import (
@@ -25,14 +25,14 @@ from database.repositories import (
 
 
 router = APIRouter(
-    prefix="/api/career-coach",
-    tags=["Career Coach"],
+    prefix="/api/cover-letter",
+    tags=["Cover Letter"],
 )
 
 
-@router.post("/ask")
-def ask_career_coach_endpoint(
-    request: CareerCoachRequest,
+@router.post("/generate")
+def generate_cover_letter_endpoint(
+    request: CoverLetterRequest,
     session_id: str = Header(
         ...,
         alias="X-Session-ID",
@@ -40,8 +40,8 @@ def ask_career_coach_endpoint(
     db: Session = Depends(get_db),
 ):
     """
-    Ask the Resume Genie Career Coach using
-    a selected saved resume and job.
+    Generate a grounded cover letter using
+    a selected saved resume and job description.
     """
 
     try:
@@ -62,20 +62,26 @@ def ask_career_coach_endpoint(
             )
 
         # --------------------------------------------------
-        # 2. Ask Career Coach service
+        # 2. Generate Cover Letter
         # --------------------------------------------------
 
-        answer = ask_career_coach(
+        cover_letter = generate_cover_letter(
             db=db,
             user_id=user.id,
             resume_id=request.resume_id,
             job_id=request.job_id,
-            question=request.question,
         )
 
+        # --------------------------------------------------
+        # 3. Return structured CoverLetter
+        # --------------------------------------------------
+
         return {
-            "question": request.question,
-            "answer": answer,
+            "resume_id": request.resume_id,
+            "job_id": request.job_id,
+            "cover_letter": (
+                cover_letter.model_dump()
+            ),
         }
 
     except HTTPException:
@@ -90,5 +96,5 @@ def ask_career_coach_endpoint(
     except Exception:
         raise HTTPException(
             status_code=500,
-            detail="Career Coach failed.",
+            detail="Cover Letter generation failed.",
         )

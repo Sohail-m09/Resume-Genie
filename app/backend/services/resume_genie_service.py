@@ -1,14 +1,16 @@
-from pathlib import Path
-
 from sqlalchemy.orm import Session
 
-from application.pipeline import (
-    run_resume_genie,
+from application.pipeline import run_resume_genie
+
+from database.repositories.resume_repository import (
+    get_resume_by_id,
 )
 
-from database.repositories import (
-    create_resume,
-    create_job,
+from database.repositories.job_repository import (
+    get_job_by_id,
+)
+
+from database.repositories.application_repository import (
     create_application,
 )
 
@@ -16,121 +18,171 @@ from database.repositories import (
 def run_complete_resume_genie(
     db: Session,
     user_id: int,
-    resume_path: str,
-    job_text: str | None = None,
-    job_pdf_path: str | None = None,
+    resume_id: int,
+    job_id: int,
     section_order: list[str] | None = None,
     removed_sections: list[str] | None = None,
     removed_projects: list[str] | None = None,
 ):
     """
-    Run the complete Resume Genie workflow and persist
-    the resulting Resume, Job, and Application records.
+    Run the complete Resume Genie workflow using
+    already-persisted Resume and Job records.
     """
 
     # --------------------------------------------------
-    # 1. Run the existing Resume Genie pipeline
+    # 1. Retrieve existing Resume
+    # --------------------------------------------------
+
+    resume_record = get_resume_by_id(
+        db=db,
+        resume_id=resume_id,
+    )
+
+    if resume_record is None:
+        raise ValueError(
+            f"Resume with ID {resume_id} was not found."
+        )
+
+    # --------------------------------------------------
+    # 2. Verify Resume belongs to current user
+    # --------------------------------------------------
+
+    if resume_record.user_id != user_id:
+        raise ValueError(
+            "Resume does not belong to the current user."
+        )
+
+    # --------------------------------------------------
+    # 3. Retrieve existing Job
+    # --------------------------------------------------
+
+    job_record = get_job_by_id(
+        db=db,
+        job_id=job_id,
+    )
+
+    if job_record is None:
+        raise ValueError(
+            f"Job with ID {job_id} was not found."
+        )
+
+    # --------------------------------------------------
+    # 4. Verify Job belongs to current user
+    # --------------------------------------------------
+
+    if job_record.user_id != user_id:
+        raise ValueError(
+            "Job does not belong to the current user."
+        )
+
+    # --------------------------------------------------
+    # 5. Validate Resume storage path
+    # --------------------------------------------------
+
+    if not resume_record.storage_path:
+        raise ValueError(
+            "Stored resume does not have a valid storage path."
+        )
+
+    # --------------------------------------------------
+    # 6. Determine Job input
+    # --------------------------------------------------
+    #
+    # The existing pipeline still expects either:
+    #   - job_text
+    #   - job_pdf_path
+    #
+    # At this stage, the database Job record contains
+    # structured JD information, but does not currently
+    # expose the original JD text/PDF path.
+    #
+    # Therefore, we reconstruct a job text representation
+    # from the persisted structured fields.
+    # --------------------------------------------------
+
+    job_parts = []
+
+    if job_record.job_title:
+        job_parts.append(
+            f"Job Title: {job_record.job_title}"
+        )
+
+    if job_record.company:
+        job_parts.append(
+            f"Company: {job_record.company}"
+        )
+
+    if job_record.required_skills:
+        job_parts.append(
+            "Required Skills: "
+            + ", ".join(
+                str(skill)
+                for skill in job_record.required_skills
+            )
+        )
+
+    if job_record.preferred_skills:
+        job_parts.append(
+            "Preferred Skills: "
+            + ", ".join(
+                str(skill)
+                for skill in job_record.preferred_skills
+            )
+        )
+
+    if job_record.responsibilities:
+        job_parts.append(
+            "Responsibilities:\n"
+            + "\n".join(
+                f"- {item}"
+                for item in job_record.responsibilities
+            )
+        )
+
+    if job_record.qualifications:
+        job_parts.append(
+            "Qualifications:\n"
+            + "\n".join(
+                f"- {item}"
+                for item in job_record.qualifications
+            )
+        )
+
+    if job_record.education_required:
+        job_parts.append(
+            f"Education Required: "
+            f"{job_record.education_required}"
+        )
+
+    if job_record.experience_required:
+        job_parts.append(
+            f"Experience Required: "
+            f"{job_record.experience_required}"
+        )
+
+    job_text = "\n\n".join(job_parts)
+
+    if not job_text:
+        raise ValueError(
+            "Stored job description does not contain "
+            "enough information to run Resume Genie."
+        )
+
+    # --------------------------------------------------
+    # 7. Run existing Resume Genie pipeline
     # --------------------------------------------------
 
     result = run_resume_genie(
-        resume_path=resume_path,
+        resume_path=resume_record.storage_path,
         job_text=job_text,
-        job_pdf_path=job_pdf_path,
+        job_pdf_path=None,
         section_order=section_order,
         removed_sections=removed_sections,
         removed_projects=removed_projects,
     )
 
-    resume = result["analysis"]
-    tailored_resume = result["tailored_resume"]
-
     # --------------------------------------------------
-    # 2. Create Resume database record
-    # --------------------------------------------------
-
-    original_resume = None
-
-    # The pipeline does not expose the original Resume
-    # directly in its returned dictionary, so we extract
-    # the basic persisted metadata from the input file.
-
-    resume_file = Path(
-        resume_path
-    )
-
-    resume_record = create_resume(
-        db=db,
-        user_id=user_id,
-        filename=resume_file.name,
-        summary=None,
-        storage_path=str(resume_file),
-    )
-
-    # --------------------------------------------------
-    # 3. Extract JobDescription data
-    # --------------------------------------------------
-
-    # The pipeline does not return the JobDescription
-    # separately, so process the JD structure from the
-    # same input using the existing application layer.
-
-    from application.job_input import (
-        process_job_description_input,
-    )
-
-    job_description = (
-        process_job_description_input(
-            job_text=job_text,
-            pdf_path=job_pdf_path,
-        )
-    )
-
-    job_data = (
-        job_description.model_dump()
-    )
-
-    source_type = (
-        "pdf"
-        if job_pdf_path is not None
-        else "text"
-    )
-
-    # --------------------------------------------------
-    # 4. Create Job database record
-    # --------------------------------------------------
-
-    job_record = create_job(
-        db=db,
-        user_id=user_id,
-        job_title=job_data.get(
-            "job_title"
-        ),
-        company=job_data.get(
-            "company"
-        ),
-        source_type=source_type,
-        required_skills=job_data.get(
-            "required_skills"
-        ),
-        preferred_skills=job_data.get(
-            "preferred_skills"
-        ),
-        responsibilities=job_data.get(
-            "responsibilities"
-        ),
-        qualifications=job_data.get(
-            "qualifications"
-        ),
-        education_required=job_data.get(
-            "education_required"
-        ),
-        experience_required=job_data.get(
-            "experience_required"
-        ),
-    )
-
-    # --------------------------------------------------
-    # 5. Prepare Application result
+    # 8. Prepare Application data
     # --------------------------------------------------
 
     analysis_data = (
@@ -138,10 +190,10 @@ def run_complete_resume_genie(
     )
 
     tailored_resume_data = (
-        tailored_resume.model_dump()
+        result["tailored_resume"].model_dump()
     )
 
-    ats_result = result["ats"]
+    ats_result = result.get("ats")
 
     ats_score = None
 
@@ -150,31 +202,27 @@ def run_complete_resume_genie(
             "ats_score"
         )
 
-    match_score = (
-        analysis_data.get(
-            "overall_score"
-        )
+    match_score = analysis_data.get(
+        "overall_score"
     )
 
     # --------------------------------------------------
-    # 6. Create Application record
+    # 9. Create Application using EXISTING IDs
     # --------------------------------------------------
 
-    application_record = (
-        create_application(
-            db=db,
-            user_id=user_id,
-            resume_id=resume_record.id,
-            job_id=job_record.id,
-            match_score=match_score,
-            ats_score=ats_score,
-            analysis_result=analysis_data,
-            tailored_resume=tailored_resume_data,
-        )
+    application_record = create_application(
+        db=db,
+        user_id=user_id,
+        resume_id=resume_record.id,
+        job_id=job_record.id,
+        match_score=match_score,
+        ats_score=ats_score,
+        analysis_result=analysis_data,
+        tailored_resume=tailored_resume_data,
     )
 
     # --------------------------------------------------
-    # 7. Return complete result + database IDs
+    # 10. Return complete result
     # --------------------------------------------------
 
     return {
@@ -182,7 +230,5 @@ def run_complete_resume_genie(
         "user_id": user_id,
         "resume_id": resume_record.id,
         "job_id": job_record.id,
-        "application_id": (
-            application_record.id
-        ),
+        "application_id": application_record.id,
     }

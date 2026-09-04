@@ -4,21 +4,17 @@ from pydantic import BaseModel, Field
 class ResumeGenieRequest(BaseModel):
     """
     Request body for the complete Resume Genie workflow.
+    Uses already-persisted Resume and Job records.
     """
 
-    resume_path: str = Field(
-        min_length=1,
-        description="Path to the original uploaded resume PDF.",
+    resume_id: int = Field(
+        gt=0,
+        description="ID of the already uploaded resume.",
     )
 
-    job_text: str | None = Field(
-        default=None,
-        description="Pasted job description text.",
-    )
-
-    job_pdf_path: str | None = Field(
-        default=None,
-        description="Path to the uploaded job description PDF.",
+    job_id: int = Field(
+        gt=0,
+        description="ID of the already uploaded job description.",
     )
 
     section_order: list[str] | None = Field(

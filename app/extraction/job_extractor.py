@@ -28,4 +28,20 @@ Rules:
 Job Description:
 {job_text}
 '''
-    return structured_model.invoke(prompt)
+    '''return structured_model.invoke(prompt)'''
+    import time
+
+    start_time = time.perf_counter()
+
+    print("Starting Gemini JD extraction...")
+
+    response = structured_model.invoke(prompt)
+
+    elapsed_time = time.perf_counter() - start_time
+
+    print(
+        f"Gemini JD extraction completed in "
+        f"{elapsed_time:.2f} seconds."
+    )
+
+    return response

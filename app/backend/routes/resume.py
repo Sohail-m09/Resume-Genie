@@ -116,8 +116,60 @@ async def upload_resume(
             detail="Resume processing failed.",
         )
 
-    finally:
 
-        cleanup_file(
-            str(file_path)
+@router.get("/list")
+def get_user_resumes(
+    session_id: str = Header(
+        ...,
+        alias="X-Session-ID",
+    ),
+    db: Session = Depends(get_db),
+):
+    """
+    Retrieve all resumes belonging to the current session user.
+    """
+
+    try:
+
+        from database.repositories import (
+            get_user_by_session_id,
+            get_resumes_by_user,
+        )
+
+        user = get_user_by_session_id(
+            db=db,
+            session_id=session_id,
+        )
+
+        if user is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Session not found.",
+            )
+
+        resumes = get_resumes_by_user(
+            db=db,
+            user_id=user.id,
+        )
+
+        return {
+            "user_id": user.id,
+            "resumes": [
+                {
+                    "resume_id": resume.id,
+                    "filename": resume.filename,
+                    "summary": resume.summary,
+                    "created_at": resume.created_at,
+                }
+                for resume in resumes
+            ],
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception:
+        raise HTTPException(
+            status_code=500,
+            detail="Could not retrieve resumes.",
         )

@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 
 class CareerCoachRequest(BaseModel):
     """
-    Request body for the Career Coach.
+    Request body for the Resume Genie Career Coach.
     """
 
     question: str = Field(
@@ -11,18 +11,10 @@ class CareerCoachRequest(BaseModel):
         description="Career-related question asked by the user.",
     )
 
-    resume_path: str = Field(
-        min_length=1,
-        description="Path to the uploaded resume PDF.",
+    resume_id: int = Field(
+        description="ID of the selected saved resume.",
     )
 
-    job_text: str | None = Field(
-        default=None,
-        description="Pasted job description text.",
+    job_id: int = Field(
+        description="ID of the selected saved job.",
     )
-
-    job_pdf_path: str | None = Field(
-        default=None,
-        description="Path to the uploaded job description PDF.",
-    )
-

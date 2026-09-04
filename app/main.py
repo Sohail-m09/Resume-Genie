@@ -121,9 +121,6 @@ if __name__ == "__main__":
     job_description = process_job_description(str(job_path))
 
     ## Store resume chunks in chromaDB
-    stored_count = store_resume_chunks(
-        chunks
-    )
 
     validate_resume_extraction(resume)
 

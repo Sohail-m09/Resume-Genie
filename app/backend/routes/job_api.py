@@ -173,3 +173,61 @@ async def upload_job_pdf(
         cleanup_file(
             str(file_path)
         )
+
+@router.get("/list")
+def get_user_jobs(
+    session_id: str = Header(
+        ...,
+        alias="X-Session-ID",
+    ),
+    db: Session = Depends(get_db),
+):
+    """
+    Retrieve all job descriptions belonging to the current session user.
+    """
+
+    try:
+
+        from database.repositories import (
+            get_user_by_session_id,
+            get_jobs_by_user,
+        )
+
+        user = get_user_by_session_id(
+            db=db,
+            session_id=session_id,
+        )
+
+        if user is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Session not found.",
+            )
+
+        jobs = get_jobs_by_user(
+            db=db,
+            user_id=user.id,
+        )
+
+        return {
+            "user_id": user.id,
+            "jobs": [
+                {
+                    "job_id": job.id,
+                    "job_title": job.job_title,
+                    "company": job.company,
+                    "source_type": job.source_type,
+                    "created_at": job.created_at,
+                }
+                for job in jobs
+            ],
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception:
+        raise HTTPException(
+            status_code=500,
+            detail="Could not retrieve job descriptions.",
+        )

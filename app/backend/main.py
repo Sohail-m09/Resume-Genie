@@ -30,6 +30,9 @@ from backend.routes.resume_genie import (
 from backend.routes.history import (
     router as history_router,
 )
+from backend.routes.cover_letter import (
+    router as cover_letter_router,
+)
 
 app = FastAPI(
     title="Resume Genie API",
@@ -54,6 +57,9 @@ app.include_router(
 )
 app.include_router(
     career_coach_router,
+)
+app.include_router(
+    cover_letter_router,
 )
 app.include_router(
     tailored_resume_router,

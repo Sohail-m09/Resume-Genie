@@ -11,7 +11,7 @@ def get_gemini_model() -> ChatGoogleGenerativeAI:
     if not api_key:
         raise ValueError("GEMINI_API_KEY is not set.")
     return ChatGoogleGenerativeAI(
-        model = "gemini-3.5-flash-lite",
+        model = "gemini-3.1-flash-lite",
         google_api_key=api_key,
     ) 
 

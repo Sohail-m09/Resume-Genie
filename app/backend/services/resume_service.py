@@ -8,9 +8,6 @@ from application.resume_input import (
 
 from database.repositories import (
     create_resume,
-)
-
-from database.repositories import (
     get_user_by_id,
 )
 
@@ -27,7 +24,7 @@ def process_uploaded_resume(
     """
     Process an uploaded resume, persist its metadata
     for the user, and store its chunks in ChromaDB
-    with the same user_id.
+    using both user_id and resume_id.
     """
 
     path = Path(file_path)
@@ -53,18 +50,23 @@ def process_uploaded_resume(
 
     filename = path.name
 
-    stored_chunks = store_resume_chunks(
-        chunks=chunks,
-        user_id=user_id,
-        filename=filename,
-    )
-
+    # Create the database record first
+    # so that we have the canonical resume_id.
     resume_record = create_resume(
         db=db,
         user_id=user_id,
         filename=filename,
         summary=resume.summary,
-        storage_path=None,
+        storage_path=str(path),
+    )
+
+    # Store the chunks using both user_id
+    # and the specific resume_id.
+    stored_chunks = store_resume_chunks(
+        chunks=chunks,
+        user_id=user_id,
+        resume_id=resume_record.id,
+        filename=filename,
     )
 
     return {

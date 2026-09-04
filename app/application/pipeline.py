@@ -1,7 +1,7 @@
 from pydantic import BaseModel
-
 from schemas.resume import Resume
 from schemas.job_description import JobDescription
+import uuid
 
 from application.resume_input import (
     process_resume_input,
@@ -200,9 +200,11 @@ def run_resume_genie(
     # 9. Generate PDF
     # --------------------------------------------------
 
+    pdf_filename = f"tailored_resume_{uuid.uuid4().hex}"
+
     pdf = build_pdf(
         latex_source=latex,
-        filename="tailored_resume",
+        filename=pdf_filename,
     )
 
     # --------------------------------------------------

@@ -9,6 +9,10 @@ from analysis.career_coach_prompt import (
 def answer_resume_question(
     question: str,
     resume_context: str,
+    job_context: str | None = None,
+    analysis_context: str | None = None,
+    user_id: int | None = None,
+    resume_id: int | None = None
 ) -> str:
     """
     Answer a resume-related question using the
@@ -56,6 +60,7 @@ def answer_with_resume_rag(
     job_context: str | None = None,
     analysis_context: str | None = None,
     user_id: int | None = None,
+    resume_id: int | None = None,
 ) -> str:
     """
     Answer a Career Coach question using dynamically retrieved
@@ -65,7 +70,8 @@ def answer_with_resume_rag(
     # 1. Retrieve relevant resume chunks
     retrieved_chunks = retrieve_resume_context(
         question,
-        user_id = user_id
+        user_id=user_id,
+        resume_id=resume_id,
     )
 
     # 2. Build resume context
@@ -88,5 +94,20 @@ def answer_with_resume_rag(
 
     if isinstance(response.content, str):
         return response.content
+
+    if isinstance(response.content, list):
+
+        text_parts = []
+
+        for block in response.content:
+
+            if isinstance(block, dict):
+
+                text = block.get("text")
+
+                if isinstance(text, str):
+                    text_parts.append(text)
+
+        return "\n".join(text_parts)
 
     return str(response.content)

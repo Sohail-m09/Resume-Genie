@@ -31,19 +31,17 @@ def get_chroma_collection():
 
 
 def store_resume_chunks(
-        chunks,
-        user_id: int,
-        filename: str,
-        ) -> int:
+    chunks,
+    user_id: int,
+    resume_id: int,
+    filename: str,
+) -> int:
     """
     Generate BGE embeddings for resume chunks
     and store them in ChromaDB.
 
-    Args:
-        chunks: List of LangChain Document objects.
-
-    Returns:
-        Number of stored chunks.
+    Each chunk is associated with both the
+    user and the specific saved resume.
     """
 
     embedding_model = get_embedding_model()
@@ -57,7 +55,7 @@ def store_resume_chunks(
     for i, chunk in enumerate(chunks, start=1):
 
         chunk_id = (
-            f"user_{user_id}_resume_chunk{i}"
+            f"user_{user_id}_resume_{resume_id}_chunk{i}"
         )
 
         ids.append(chunk_id)
@@ -77,7 +75,8 @@ def store_resume_chunks(
                 "source": filename,
                 "page": chunk.metadata.get("page"),
                 "page_label": chunk.metadata.get("page_label"),
-                "user_id" : user_id
+                "user_id": user_id,
+                "resume_id": resume_id,
             }
         )
 

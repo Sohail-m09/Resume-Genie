@@ -1,7 +1,5 @@
 import chromadb
-
 from embeddings.model import get_embedding_model
-
 
 CHROMA_PATH = "data/chroma"
 COLLECTION_NAME = "resume_documents_bge"
@@ -25,12 +23,12 @@ def get_resume_collection():
     )
 
 
-
 def retrieve_resume_chunks(
     query: str,
     top_k: int = 3,
     source: str | None = None,
     user_id: int | None = None,
+    resume_id: int | None = None,
 ) -> dict:
     """
     Retrieve the most relevant resume chunks for a query.
@@ -40,6 +38,7 @@ def retrieve_resume_chunks(
         top_k: Number of chunks to retrieve.
         source: Optional source filename filter.
         user_id: Optional user ID for multi-user isolation.
+        resume_id: Optional specific resume ID filter.
 
     Returns:
         ChromaDB retrieval result.
@@ -68,6 +67,13 @@ def retrieve_resume_chunks(
             }
         )
 
+    if resume_id is not None:
+        filters.append(
+            {
+                "resume_id": resume_id
+            }
+        )
+
     if source:
         filters.append(
             {
@@ -90,12 +96,12 @@ def retrieve_resume_chunks(
     return results
 
 
-
 def retrieve_resume_context(
     query: str,
     top_k: int = 3,
     source: str | None = None,
     user_id: int | None = None,
+    resume_id: int | None = None,
 ) -> list[dict]:
     """
     Retrieve relevant resume chunks in an application-friendly format.
@@ -104,6 +110,8 @@ def retrieve_resume_context(
         query: User query.
         top_k: Number of chunks to retrieve.
         source: Optional source filter.
+        user_id: Optional user ID for multi-user isolation.
+        resume_id: Optional resume ID filter.
 
     Returns:
         List of retrieved chunks with text, metadata, and distance.
@@ -113,7 +121,8 @@ def retrieve_resume_context(
         query=query,
         top_k=top_k,
         source=source,
-        user_id = user_id
+        user_id=user_id,
+        resume_id=resume_id,
     )
 
     documents = results["documents"][0]

@@ -16,25 +16,20 @@ from schemas.job_description import (
     JobDescription,
 )
 
-from application.pipeline import (
-    analyze_application,
-)
-
-from analysis.career_coach import (
-    answer_with_resume_rag,
+from analysis.cover_letter_service import (
+    create_cover_letter,
 )
 
 
-def ask_career_coach(
+def generate_cover_letter(
     db: Session,
     user_id: int,
     resume_id: int,
     job_id: int,
-    question: str,
-) -> str:
+):
     """
-    Ask the Career Coach using a saved resume and job
-    belonging to the current user.
+    Generate a cover letter using a saved resume and
+    saved job description belonging to the current user.
     """
 
     # --------------------------------------------------
@@ -100,36 +95,12 @@ def ask_career_coach(
     )
 
     # --------------------------------------------------
-    # 5. Run existing Resume-JD analysis
+    # 5. Generate grounded structured cover letter
     # --------------------------------------------------
 
-    analysis = analyze_application(
+    cover_letter = create_cover_letter(
         resume=resume,
         job_description=job_description,
     )
 
-    # --------------------------------------------------
-    # 6. Convert JD + analysis into Career Coach context
-    # --------------------------------------------------
-
-    job_context = job_description.model_dump_json(
-        indent=2
-    )
-
-    analysis_context = analysis.model_dump_json(
-        indent=2
-    )
-
-    # --------------------------------------------------
-    # 7. Run grounded Resume RAG
-    # --------------------------------------------------
-
-    answer = answer_with_resume_rag(
-        question=question,
-        job_context=job_context,
-        analysis_context=analysis_context,
-        user_id=user_id,
-        resume_id=resume_id,
-    )
-
-    return answer
+    return cover_letter

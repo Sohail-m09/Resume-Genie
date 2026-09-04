@@ -15,10 +15,6 @@ from backend.services.resume_genie_service import (
     run_complete_resume_genie,
 )
 
-from backend.services.request_validation import (
-    validate_job_input,
-)
-
 from backend.services.db_dependency import (
     get_db,
 )
@@ -41,13 +37,9 @@ def run_resume_genie_endpoint(
 ):
     """
     Run the complete Resume Genie workflow
-    and persist the application.
+    using existing Resume and Job records,
+    and persist the resulting application.
     """
-
-    validate_job_input(
-        job_text=request.job_text,
-        job_pdf_path=request.job_pdf_path,
-    )
 
     try:
 
@@ -70,9 +62,8 @@ def run_resume_genie_endpoint(
             run_complete_resume_genie(
                 db=db,
                 user_id=user.id,
-                resume_path=request.resume_path,
-                job_text=request.job_text,
-                job_pdf_path=request.job_pdf_path,
+                resume_id=request.resume_id,
+                job_id=request.job_id,
                 section_order=request.section_order,
                 removed_sections=request.removed_sections,
                 removed_projects=request.removed_projects,
@@ -115,6 +106,12 @@ def run_resume_genie_endpoint(
 
     except HTTPException:
         raise
+
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        )
 
     except Exception:
         raise HTTPException(
