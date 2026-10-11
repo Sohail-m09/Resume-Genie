@@ -1594,6 +1594,8 @@ if cover_letter_result is not None:
         )
 '''
 
+## ********** 2nd UI Design **********
+
 
 from pathlib import Path
 import requests
@@ -3515,3 +3517,5 @@ if cover_letter_result is not None:
             "Cover letter content was not returned "
             "in the expected format."
         )
+
+
