@@ -1,0 +1,11 @@
+question,faithfulness,answer_relevancy,context_precision
+What is the candidate's CGPA?,1.0,1,0.3333333333333333
+Which project reached 94% accuracy?,1.0,1,0.6666666666666666
+Which tools did the Bank Loan Prediction project use?,1.0,1,0.3333333333333333
+Which certifications does the candidate have?,1.0,1,0.3333333333333333
+Which databases does the candidate know?,1.0,1,1.0
+Which data visualization tools are listed?,1.0,1,0.3333333333333333
+What was used for data versioning in the cement project?,1.0,1,0.3333333333333333
+What is the higher secondary percentage?,1.0,1,0.3333333333333333
+Summarise the professional summary.,1.0,1,0.3333333333333333
+What does the phishing project do?,1.0,1,0.6666666666666666
